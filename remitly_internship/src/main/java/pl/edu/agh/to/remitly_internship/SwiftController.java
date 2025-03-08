@@ -1,11 +1,12 @@
 package pl.edu.agh.to.remitly_internship;
 
 
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
-import pl.edu.agh.to.remitly_internship.Dto.HeadquarterDto;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+import pl.edu.agh.to.remitly_internship.Dto.CountryDto;
+import pl.edu.agh.to.remitly_internship.Dto.ResponseDto;
+import pl.edu.agh.to.remitly_internship.Dto.SwiftCodeDto;
 
 import java.util.List;
 
@@ -26,8 +27,25 @@ public class SwiftController {
     }
 
     @GetMapping(value = "/",params = {"swiftCode"})
-    public HeadquarterDto getSwiftCode(@RequestParam String swiftCode) {
-        return swiftService.getHeadquarter(swiftCode);
+    public SwiftCodeDto getSwiftCode(@RequestParam String swiftCode) {
+        return swiftService.getSwiftCodeWithBranches(swiftCode);
+    }
+
+    @GetMapping(value = "/country/",params = {"countryISO2code"})
+    public CountryDto getCountrySwiftCodes(@RequestParam String countryISO2code) {
+        return swiftService.getCountrySwiftCodes(countryISO2code);
+    }
+
+    @PostMapping(value = "")
+    public ResponseEntity<ResponseDto> addSwiftCode(@RequestBody SwiftCodeDto swiftCodeDto) {
+        SwiftCode savedSwiftCode = swiftService.addSwiftCode(swiftCodeDto);
+        return ResponseEntity.status(HttpStatus.CREATED).body(new ResponseDto("dd"));
+    }
+
+    @DeleteMapping(value = "/",params = {"swiftCode"})
+    public ResponseEntity<ResponseDto> deleteSwiftCodeBySwift(@RequestParam String swiftCode) {
+        swiftService.deleteSwiftCode(swiftCode);
+        return ResponseEntity.ok(new ResponseDto("vvv"));
     }
 
 
