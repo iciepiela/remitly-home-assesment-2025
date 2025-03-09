@@ -57,4 +57,18 @@ public class SwiftCode {
     public boolean isHeadquarter() {
         return isHeadquarter;
     }
+
+    @Override
+    public String toString() {
+        return "SwiftCode {" +
+                "id=" + id +
+                ", countryISO2Code='" + countryISO2Code + '\'' +
+                ", swiftCode='" + swiftCode + '\'' +
+                ", bankName='" + bankName + '\'' +
+                ", address='" + address + '\'' +
+                ", country='" + country + '\'' +
+                ", isHeadquarter=" + isHeadquarter +
+                '}';
+    }
+
 }

@@ -13,40 +13,40 @@ import java.util.NoSuchElementException;
 
 @RestController
 @RequestMapping("/v1/swift-codes")
-public class SwiftController {
+public class SwiftCodeController {
 
 
-    private final SwiftService swiftService;
+    private final SwiftCodeService swiftCodeService;
 
-    public SwiftController(SwiftService swiftService) {
-        this.swiftService = swiftService;
+    public SwiftCodeController(SwiftCodeService swiftCodeService) {
+        this.swiftCodeService = swiftCodeService;
     }
 
     @GetMapping("/all")
     public List<SwiftCode> getSwiftCodes() {
-        return swiftService.getRecords();
+        return swiftCodeService.getRecords();
     }
 
     @GetMapping(value = "/",params = {"swiftCode"})
     public SwiftCodeDto getSwiftCode(@RequestParam String swiftCode) {
-        return swiftService.getSwiftCodeWithBranches(swiftCode);
+        return swiftCodeService.getSwiftCodeWithBranches(swiftCode);
     }
 
     @GetMapping(value = "/country/",params = {"countryISO2code"})
     public CountryDto getCountrySwiftCodes(@RequestParam String countryISO2code) {
-        return swiftService.getCountrySwiftCodes(countryISO2code);
+        return swiftCodeService.getCountrySwiftCodes(countryISO2code);
     }
 
     @PostMapping(value = "")
     public ResponseEntity<ResponseDto> addSwiftCode(@RequestBody SwiftCodeDto swiftCodeDto) {
-        SwiftCode savedSwiftCode = swiftService.addSwiftCode(swiftCodeDto);
+        SwiftCode savedSwiftCode = swiftCodeService.addSwiftCode(swiftCodeDto);
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(new ResponseDto("New SWIFT code entry added to the database: " + savedSwiftCode.toString()));
     }
 
     @DeleteMapping(value = "/",params = {"swiftCode"})
     public ResponseEntity<ResponseDto> deleteSwiftCodeBySwift(@RequestParam String swiftCode) {
-        swiftService.deleteSwiftCode(swiftCode);
+        swiftCodeService.deleteSwiftCode(swiftCode);
         return ResponseEntity.ok(new ResponseDto("SWIFT code data deleted from the database: " + swiftCode));
     }
 

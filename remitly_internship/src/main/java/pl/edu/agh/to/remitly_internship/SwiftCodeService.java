@@ -9,10 +9,10 @@ import java.util.List;
 import java.util.NoSuchElementException;
 
 @Service
-public class SwiftService {
+public class SwiftCodeService {
     private final SwiftCodeRepository swiftCodeRepository;
 
-    public SwiftService(SwiftCodeRepository swiftCodeRepository) {
+    public SwiftCodeService(SwiftCodeRepository swiftCodeRepository) {
         this.swiftCodeRepository = swiftCodeRepository;
     }
 

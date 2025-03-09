@@ -9,6 +9,7 @@ import org.springframework.core.io.ClassPathResource;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.NoSuchElementException;
 
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
@@ -20,8 +21,16 @@ public class SwiftCodeConfigurator {
     CommandLineRunner commendLineRunner(SwiftCodeRepository swiftCodeRepository){
         return args -> {
             if (swiftCodeRepository.count() == 0) {
-                List<SwiftCode> swiftCodes = readSwiftCodesFromExcel("Interns_2025_SWIFT_CODES.xlsx");
-                swiftCodeRepository.saveAll(swiftCodes);
+                try {
+                    List<SwiftCode> swiftCodes = readSwiftCodesFromExcel("Interns_2025_SWIFT_CODES.xlsx");
+                    if (swiftCodes.isEmpty()) {
+                        System.err.println("No valid SWIFT codes were found in the provided Excel file.");
+                    } else {
+                        swiftCodeRepository.saveAll(swiftCodes);
+                    }
+                } catch (Exception e) {
+                    System.err.println("Failed to load SWIFT codes from Excel: "+ e.getMessage());
+                }
             }
         };
     }
@@ -34,18 +43,28 @@ public class SwiftCodeConfigurator {
             Workbook workbook = new XSSFWorkbook(inputStream);
             Sheet sheet = workbook.getSheetAt(0);
 
+            if (sheet == null) {
+                throw new NoSuchElementException("No sheets found in the Excel file.");
+            }
+
             for (Row row : sheet) {
                 if (row.getRowNum() == 0) continue;
+                try {
 
-                SwiftCode swiftCode = parseExcelRow(row);
-                if (swiftCode != null) {
-                    swiftCodes.add(swiftCode);
+                    SwiftCode swiftCode = parseExcelRow(row);
+                    if (swiftCode != null) {
+                        swiftCodes.add(swiftCode);
+                    }
+                } catch (IllegalArgumentException e) {
+                    System.err.println("Skipping row " + row.getRowNum() + " due to validation error: "+ e.getMessage());
+                } catch (Exception e) {
+                    System.err.println("Unexpected error processing row " + row.getRowNum() + ": "+ e.getMessage());
                 }
             }
 
             workbook.close();
         } catch (Exception e) {
-            e.printStackTrace();
+            throw new RuntimeException("Error reading Excel file: " + filename, e);
         }
 
         return swiftCodes;
@@ -68,13 +87,10 @@ public class SwiftCodeConfigurator {
             }
             return new SwiftCode(countryISO2Code, swiftCode, bankName, address, country,isHeadquarter(swiftCode));
         } catch (IllegalArgumentException e) {
-            System.err.println("Validation error in row " + row.getRowNum() + ": " + e.getMessage());
+            throw new IllegalArgumentException("Validation error in row " + row.getRowNum() + ": " + e.getMessage(), e);
         } catch (Exception e) {
-            System.err.println("Unexpected error processing row " + row.getRowNum() + ": " + e.getMessage());
-            e.printStackTrace();
+            throw new RuntimeException("Unexpected error processing row " + row.getRowNum(), e);
         }
-        //TODO
-        return null;
     }
 
     private String getCellValue(Cell cell) {
@@ -85,7 +101,7 @@ public class SwiftCodeConfigurator {
                 default -> "";
             };
         } catch (Exception e) {
-            System.err.println("Error reading cell value: " + e.getMessage());
+            System.err.println("Error reading cell value at column "+ cell.getColumnIndex()+": "+ e.getMessage());
             return "";
         }
     }
