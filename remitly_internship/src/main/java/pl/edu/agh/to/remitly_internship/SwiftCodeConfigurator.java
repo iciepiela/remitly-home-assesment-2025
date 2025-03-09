@@ -53,22 +53,39 @@ public class SwiftCodeConfigurator {
 
     private SwiftCode parseExcelRow(Row row) {
         try {
-            String countryISO2Code = getCellValue(row.getCell(0));
+            String countryISO2Code = getCellValue(row.getCell(0)).toUpperCase();
             String swiftCode = getCellValue(row.getCell(1));
             String bankName = getCellValue(row.getCell(3));
             String address = getCellValue(row.getCell(4));
-            String country = getCellValue(row.getCell(6));
+            String country = getCellValue(row.getCell(6)).toUpperCase();
 
+            if (swiftCode.isEmpty()) {
+                throw new IllegalArgumentException("Missing required SWIFT code at row: " + row.getRowNum());
+            } else if (swiftCode.length()!=11) {
+                throw new IllegalArgumentException("Invalid SWIFT code length: " + swiftCode.length() + " at row: " + row.getRowNum());
+            } else if (countryISO2Code.isEmpty()) {
+                throw new IllegalArgumentException("Missing required countryISO2 code at row: " + row.getRowNum());
+            }
             return new SwiftCode(countryISO2Code, swiftCode, bankName, address, country,isHeadquarter(swiftCode));
+        } catch (IllegalArgumentException e) {
+            System.err.println("Validation error in row " + row.getRowNum() + ": " + e.getMessage());
         } catch (Exception e) {
-            return null;
+            System.err.println("Unexpected error processing row " + row.getRowNum() + ": " + e.getMessage());
+            e.printStackTrace();
         }
+        //TODO
+        return null;
     }
 
     private String getCellValue(Cell cell) {
         if (cell == null) return "";
-        if (cell.getCellType() == CellType.STRING) return cell.getStringCellValue();
-        else{
+        try {
+            return switch (cell.getCellType()) {
+                case STRING -> cell.getStringCellValue();
+                default -> "";
+            };
+        } catch (Exception e) {
+            System.err.println("Error reading cell value: " + e.getMessage());
             return "";
         }
     }

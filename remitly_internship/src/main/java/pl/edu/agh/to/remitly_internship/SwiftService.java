@@ -1,10 +1,12 @@
 package pl.edu.agh.to.remitly_internship;
 
+import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Service;
 import pl.edu.agh.to.remitly_internship.Dto.CountryDto;
 import pl.edu.agh.to.remitly_internship.Dto.SwiftCodeDto;
 
 import java.util.List;
+import java.util.NoSuchElementException;
 
 @Service
 public class SwiftService {
@@ -18,11 +20,21 @@ public class SwiftService {
         return swiftCodeRepository.findAll();
     }
 
-    public SwiftCode getSwiftCode(String code){
-        return swiftCodeRepository.findBySwiftCode(code);
+    private boolean isSwiftCodeValid(String swiftCode){
+        return swiftCode != null && swiftCode.trim().length() == 11;
     }
 
-    public List<SwiftCodeDto> getBranches(String code) {
+    private SwiftCode getSwiftCode(String swiftCode) {
+        if (!isSwiftCodeValid(swiftCode)) {
+            throw new IllegalArgumentException("Invalid SWIFT code format: " + swiftCode);
+        }
+
+        return swiftCodeRepository.findBySwiftCode(swiftCode)
+                .orElseThrow(() -> new NoSuchElementException("SWIFT code not found in database: " + swiftCode));
+    }
+
+
+    private List<SwiftCodeDto> getBranches(String code) {
         return swiftCodeRepository.findAllBranches(code)
                 .stream()
                 .map(this::convertBranchToSwiftCodeDto)
@@ -41,31 +53,22 @@ public class SwiftService {
         );
     }
 
-    public SwiftCodeDto getSwiftCodeWithBranches(String swiftCode){
+    public SwiftCodeDto getSwiftCodeWithBranches(String swiftCode) {
         SwiftCode swiftCodeRecord = getSwiftCode(swiftCode);
-        if (swiftCodeRecord.isHeadquarter()) {
-            List<SwiftCodeDto> branches = getBranches(swiftCodeRecord.getSwiftCode());
-            return new SwiftCodeDto(
-                    swiftCodeRecord.getAddress(),
-                    swiftCodeRecord.getBankName(),
-                    swiftCodeRecord.getCountryISO2Code(),
-                    swiftCodeRecord.getCountry(),
-                    swiftCodeRecord.isHeadquarter(),
-                    swiftCodeRecord.getSwiftCode(),
-                    branches);
-        }
-        else {
-            return new SwiftCodeDto(
-                    swiftCodeRecord.getAddress(),
-                    swiftCodeRecord.getBankName(),
-                    swiftCodeRecord.getCountryISO2Code(),
-                    swiftCodeRecord.getCountry(),
-                    swiftCodeRecord.isHeadquarter(),
-                    swiftCodeRecord.getSwiftCode(),
-                    null
-            );
-        }
+
+        List<SwiftCodeDto> branches = swiftCodeRecord.isHeadquarter() ? getBranches(swiftCodeRecord.getSwiftCode()) : null;
+
+        return new SwiftCodeDto(
+                swiftCodeRecord.getAddress(),
+                swiftCodeRecord.getBankName(),
+                swiftCodeRecord.getCountryISO2Code(),
+                swiftCodeRecord.getCountry(),
+                swiftCodeRecord.isHeadquarter(),
+                swiftCodeRecord.getSwiftCode(),
+                branches
+        );
     }
+
 
     public CountryDto getCountrySwiftCodes(String countryISO2code) {
         List<SwiftCodeDto> countrySwiftCodes = swiftCodeRepository
@@ -81,23 +84,44 @@ public class SwiftService {
         );
 
 
-    }
-
-
+    } //TODO
     public SwiftCode addSwiftCode(SwiftCodeDto swiftCodeDto) {
+        if(!isSwiftCodeValid(swiftCodeDto.swiftCode())){
+            throw new IllegalArgumentException("Invalid SWIFT code format: " + swiftCodeDto.swiftCode());
+        }
+        if(swiftCodeRepository.existsBySwiftCode(swiftCodeDto.swiftCode())){
+            throw new IllegalArgumentException("SWIFT code already exists: " + swiftCodeDto.swiftCode());
+        }
+        if(swiftCodeDto.countryISO2() == null || swiftCodeDto.countryISO2().trim().isEmpty()){
+            throw new IllegalArgumentException("Country ISO code cannot be empty: " + swiftCodeDto.countryISO2());
+        }
         SwiftCode swiftCode = new SwiftCode(
-                swiftCodeDto.countryISO2(),
+                swiftCodeDto.countryISO2().toUpperCase(),
                 swiftCodeDto.swiftCode(),
                 swiftCodeDto.bankName(),
                 swiftCodeDto.address(),
-                swiftCodeDto.countryName(),
+                swiftCodeDto.countryName().toUpperCase(),
                 swiftCodeDto.isHeadquarter()
         );
 
-        return swiftCodeRepository.save(swiftCode);
-    }
+        try {
+            return swiftCodeRepository.save(swiftCode);
+        } catch (DataAccessException e) {
+            throw new DatabaseException("Failed to save SWIFT code: " + swiftCodeDto.swiftCode(), e);
+        }    }
 
     public void deleteSwiftCode(String swiftCode) {
-        swiftCodeRepository.deleteBySwiftCode(swiftCode);
-    }
+        if (!isSwiftCodeValid(swiftCode)) {
+            throw new IllegalArgumentException("Invalid SWIFT code format: " + swiftCode);
+        }
+
+        if (!swiftCodeRepository.existsBySwiftCode(swiftCode)) {
+            throw new NoSuchElementException("SWIFT code not found: " + swiftCode);
+        }
+
+        try {
+            swiftCodeRepository.deleteBySwiftCode(swiftCode);
+        } catch (DataAccessException e) {
+            throw new DatabaseException("Failed to delete SWIFT code: " + swiftCode, e);
+        }    }
 }
