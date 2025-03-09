@@ -9,6 +9,7 @@ import pl.edu.agh.to.remitly_internship.Dto.ResponseDto;
 import pl.edu.agh.to.remitly_internship.Dto.SwiftCodeDto;
 
 import java.util.List;
+import java.util.NoSuchElementException;
 
 @RestController
 @RequestMapping("/v1/swift-codes")
@@ -39,13 +40,39 @@ public class SwiftController {
     @PostMapping(value = "")
     public ResponseEntity<ResponseDto> addSwiftCode(@RequestBody SwiftCodeDto swiftCodeDto) {
         SwiftCode savedSwiftCode = swiftService.addSwiftCode(swiftCodeDto);
-        return ResponseEntity.status(HttpStatus.CREATED).body(new ResponseDto("dd"));
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(new ResponseDto("New SWIFT code entry added to the database: " + savedSwiftCode.toString()));
     }
 
     @DeleteMapping(value = "/",params = {"swiftCode"})
     public ResponseEntity<ResponseDto> deleteSwiftCodeBySwift(@RequestParam String swiftCode) {
         swiftService.deleteSwiftCode(swiftCode);
-        return ResponseEntity.ok(new ResponseDto("vvv"));
+        return ResponseEntity.ok(new ResponseDto("SWIFT code data deleted from the database: " + swiftCode));
+    }
+
+
+    @ExceptionHandler(NoSuchElementException.class)
+    public ResponseEntity<ResponseDto> handleNoSuchElementException(NoSuchElementException e) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(new ResponseDto(e.getMessage()));
+    }
+
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<ResponseDto> handleIllegalArgumentException(IllegalArgumentException e) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(new ResponseDto(e.getMessage()));
+    }
+
+    @ExceptionHandler(DatabaseException.class)
+    public ResponseEntity<ResponseDto> handleDatabaseException(DatabaseException e) {
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(new ResponseDto(e.getMessage()));
+    }
+
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<ResponseDto> handleGenericException(Exception e) {
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(new ResponseDto("An unexpected error occurred."));
     }
 
 

@@ -71,21 +71,35 @@ public class SwiftService {
 
 
     public CountryDto getCountrySwiftCodes(String countryISO2code) {
+        if (countryISO2code == null) {
+            throw new IllegalArgumentException("Country ISO code cannot be null");
+        }
+        String upperCaseCountryISO2code = countryISO2code.trim().toUpperCase();
+        if(!swiftCodeRepository.existsByCountryISO2Code(upperCaseCountryISO2code)){
+            throw new NoSuchElementException("Country ISO code not found: " + upperCaseCountryISO2code);
+        }
         List<SwiftCodeDto> countrySwiftCodes = swiftCodeRepository
-                .findSwiftCodeByCountryISO2Code(countryISO2code)
+                .findSwiftCodeByCountryISO2Code(upperCaseCountryISO2code)
                 .stream()
                 .map(this::convertBranchToSwiftCodeDto)
                 .toList();
 
+        String countryName = swiftCodeRepository.findCountryNameByCountryISO2Code(upperCaseCountryISO2code)
+                .orElseThrow(() -> new NoSuchElementException("Country name that match "+upperCaseCountryISO2code+" not found in database"));
+
         return new CountryDto(
-                countryISO2code,
-                "A",
+                upperCaseCountryISO2code,
+                countryName,
                 countrySwiftCodes
         );
 
 
-    } //TODO
+    }
+
     public SwiftCode addSwiftCode(SwiftCodeDto swiftCodeDto) {
+        if (swiftCodeDto == null) {
+            throw new IllegalArgumentException("New SWIFT code cannot be null");
+        }
         if(!isSwiftCodeValid(swiftCodeDto.swiftCode())){
             throw new IllegalArgumentException("Invalid SWIFT code format: " + swiftCodeDto.swiftCode());
         }
@@ -108,7 +122,8 @@ public class SwiftService {
             return swiftCodeRepository.save(swiftCode);
         } catch (DataAccessException e) {
             throw new DatabaseException("Failed to save SWIFT code: " + swiftCodeDto.swiftCode(), e);
-        }    }
+        }
+    }
 
     public void deleteSwiftCode(String swiftCode) {
         if (!isSwiftCodeValid(swiftCode)) {
