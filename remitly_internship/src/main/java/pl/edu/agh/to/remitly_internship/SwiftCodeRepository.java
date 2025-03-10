@@ -27,5 +27,6 @@ public interface SwiftCodeRepository extends JpaRepository<SwiftCode, Integer> {
 
     boolean existsByCountryISO2Code(String countryISO2Code);
 
-    @Query("SELECT s.country FROM SwiftCode s WHERE s.countryISO2Code = :countryISO2Code")
-    Optional<String> findCountryNameByCountryISO2Code(@Param("countryISO2Code") String countryISO2Code);}
+    @Query("SELECT DISTINCT s.country FROM SwiftCode s WHERE s.countryISO2Code = :countryISO2Code")
+    Optional<String> findCountryNameByCountryISO2Code(@Param("countryISO2Code") String countryISO2Code);
+}

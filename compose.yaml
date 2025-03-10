@@ -1,0 +1,38 @@
+version: '2.0'
+
+services:
+  backend:
+    build:
+      context: ./remitly_internship
+    container_name: remitly_internship_backend
+    ports:
+      - "8080:8080"
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://db:5432/remitly_internship
+      - SPRING_DATASOURCE_USERNAME=app
+      - SPRING_DATASOURCE_PASSWORD=abcd
+    depends_on:
+      - db
+    networks:
+      - app-network
+
+  db:
+    image: postgres:15
+    container_name: swift-code-db
+    restart: always
+    environment:
+      POSTGRES_USER: app
+      POSTGRES_PASSWORD: abcd
+      POSTGRES_DB: remitly_internship
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./db-init.sql:/docker-entrypoint-initdb.d/db-init.sql
+    networks:
+      - app-network
+volumes:
+  postgres-data:
+
+networks:
+  app-network:

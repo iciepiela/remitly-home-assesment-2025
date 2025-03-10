@@ -1,6 +1,7 @@
 package pl.edu.agh.to.remitly_internship;
 
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -18,6 +19,7 @@ public class SwiftCodeController {
 
     private final SwiftCodeService swiftCodeService;
 
+    @Autowired
     public SwiftCodeController(SwiftCodeService swiftCodeService) {
         this.swiftCodeService = swiftCodeService;
     }
@@ -72,7 +74,7 @@ public class SwiftCodeController {
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ResponseDto> handleGenericException(Exception e) {
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(new ResponseDto("An unexpected error occurred."));
+                .body(new ResponseDto("An unexpected error occurred: " + e.getMessage()));
     }
 
 

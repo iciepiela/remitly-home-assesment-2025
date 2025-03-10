@@ -37,11 +37,11 @@ public class SwiftCodeService {
     private List<SwiftCodeDto> getBranches(String code) {
         return swiftCodeRepository.findAllBranches(code)
                 .stream()
-                .map(this::convertBranchToSwiftCodeDto)
+                .map(this::convertToSwiftCodeDto)
                 .toList();
     }
 
-    private SwiftCodeDto convertBranchToSwiftCodeDto(SwiftCode swiftCode) {
+    private SwiftCodeDto convertToSwiftCodeDto(SwiftCode swiftCode) {
         return new SwiftCodeDto(
                 swiftCode.getAddress(),
                 swiftCode.getBankName(),
@@ -78,14 +78,16 @@ public class SwiftCodeService {
         if(!swiftCodeRepository.existsByCountryISO2Code(upperCaseCountryISO2code)){
             throw new NoSuchElementException("Country ISO code not found: " + upperCaseCountryISO2code);
         }
+
         List<SwiftCodeDto> countrySwiftCodes = swiftCodeRepository
                 .findSwiftCodeByCountryISO2Code(upperCaseCountryISO2code)
                 .stream()
-                .map(this::convertBranchToSwiftCodeDto)
+                .map(this::convertToSwiftCodeDto)
                 .toList();
 
         String countryName = swiftCodeRepository.findCountryNameByCountryISO2Code(upperCaseCountryISO2code)
-                .orElseThrow(() -> new NoSuchElementException("Country name that match "+upperCaseCountryISO2code+" not found in database"));
+                .orElseThrow(() -> new NoSuchElementException("Country name that match " +
+                        upperCaseCountryISO2code +" not found in database"));
 
         return new CountryDto(
                 upperCaseCountryISO2code,
