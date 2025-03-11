@@ -35,7 +35,7 @@ public class SwiftCodeConfigurator {
         };
     }
 
-    private List<SwiftCode> readSwiftCodesFromExcel(String filename) {
+    protected List<SwiftCode> readSwiftCodesFromExcel(String filename) {
         List<SwiftCode> swiftCodes = new ArrayList<>();
 
         try {
