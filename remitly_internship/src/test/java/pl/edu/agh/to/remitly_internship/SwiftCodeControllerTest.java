@@ -237,6 +237,16 @@ public class SwiftCodeControllerTest {
 
     @Test
     void deleteSwiftCode_validData_shouldReturnSuccess() throws Exception {
+        // Arrange
+        String swiftCode = "ABCDUS12XXX";
+        doNothing().when(swiftCodeService).deleteSwiftCode(swiftCode);
 
+        // Act & Assert
+        mockMvc.perform(delete("/v1/swift-codes/")
+                        .param("swiftCode", swiftCode))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.message", containsString("SWIFT code data deleted from the database: " + swiftCode)));
+
+        verify(swiftCodeService).deleteSwiftCode(swiftCode);
     }
 }

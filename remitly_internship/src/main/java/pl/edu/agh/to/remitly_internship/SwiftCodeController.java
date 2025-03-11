@@ -29,8 +29,8 @@ public class SwiftCodeController {
         return swiftCodeService.getRecords();
     }
 
-    @GetMapping(value = "/",params = {"swiftCode"})
-    public SwiftCodeDto getSwiftCode(@RequestParam String swiftCode) {
+    @GetMapping(value = "/",params = {"swift-code"})
+    public SwiftCodeDto getSwiftCode(@RequestParam("swift-code") String swiftCode) {
         return swiftCodeService.getSwiftCodeWithBranches(swiftCode);
     }
 
@@ -46,8 +46,8 @@ public class SwiftCodeController {
                 .body(new ResponseDto("New SWIFT code entry added to the database: " + savedSwiftCode.toString()));
     }
 
-    @DeleteMapping(value = "/",params = {"swiftCode"})
-    public ResponseEntity<ResponseDto> deleteSwiftCodeBySwift(@RequestParam String swiftCode) {
+    @DeleteMapping(value = "/",params = {"swift-code"})
+    public ResponseEntity<ResponseDto> deleteSwiftCodeBySwift(@RequestParam("swift-code") String swiftCode) {
         swiftCodeService.deleteSwiftCode(swiftCode);
         return ResponseEntity.ok(new ResponseDto("SWIFT code data deleted from the database: " + swiftCode));
     }
