@@ -14,8 +14,8 @@ The application is written in Java 21 using Spring Boot. It utilizes a PostgreSQ
  - Clone the repository:
 
 ```bash
-git clone
-cd
+git clone https://github.com/iciepiela/remitly-home-assesment-2025.git
+cd .\remitly-home-assesment-2025\
 ```
  - Install Docker and Docker Compose:
 
